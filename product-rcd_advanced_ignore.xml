@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<product productid="rcd_advanced_ignore" active="1">
+	<title>Advanced Ignore</title>
+	<description>Provides ignore rendering customizations.</description>
+	<version>0.1</version>
+	<url><![CDATA[http://www.vbulletin.org/forum/misc.php?do=producthelp&pid=rcd_advanced_ignore]]></url>
+	<versioncheckurl><![CDATA[http://www.vbulletin.org/forum/misc.php?do=productcheck&pid=rcd_advanced_ignore]]></versioncheckurl>
+	<apm_releasedate>0</apm_releasedate>
+	<apm_author />
+	<apm_relatedurl />
+	<apm_extrainfo />
+	<apm_extraedit />
+	<dependencies>
+	</dependencies>
+	<codes>
+	</codes>
+	<templates>
+		<template name="advanced_ignore_notice" templatetype="template" date="1284663277" username="Vitaly" version="0.1"><![CDATA[<h2 class="title" style="text-align:center">{vb:rawphrase rcd_ai_is_ignored}</h2>]]></template>
+	</templates>
+	<stylevardfns>
+	</stylevardfns>
+	<stylevars>
+	</stylevars>
+	<plugins>
+		<plugin active="1" executionorder="5">
+			<title>Cache templates</title>
+			<hookname>cache_templates</hookname>
+			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread')
+{
+    $cache[] = 'advanced_ignore_notice';
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Postbit Ignore End</title>
+			<hookname>postbit_display_complete</hookname>
+			<phpcode><![CDATA[if($post['rcd_ai_template'])
+{
+    global $rcd_ai_template;
+    $template_hook["postbit_messagearea_start"] .= $rcd_ai_template;
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Postbit Ignore Start</title>
+			<hookname>showthread_postbit_create</hookname>
+			<phpcode><![CDATA[global $rcd_ai_show_ignored;
+$post['rcd_ai_template'] = false;
+if($ignore[$post['userid']])
+{    
+    if($rcd_ai_show_ignored)
+    {      
+       $post['rcd_ai_template'] = true;
+       $fetchtype = 'post';
+    }
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Init template & permissions]]></title>
+			<hookname>showthread_post_start</hookname>
+			<phpcode><![CDATA[// Remove template
+$vbulletin->templatecache['postbit_ignore'] = '$final_rendered =\'\';';
+global $rcd_ai_template, $rcd_ai_show_ignored;
+if (can_moderate())
+{
+    $rcd_ai_show_ignored = true;
+    $rcd_ai_template = vB_Template::create('advanced_ignore_notice');
+    $rcd_ai_template = $rcd_ai_template->render();
+}]]></phpcode>
+		</plugin>
+	</plugins>
+	<phrases>
+		<phrasetype name="GLOBAL" fieldname="global">
+			<phrase name="rcd_ai_is_ignored" date="1284658370" username="ruseinov" version=""><![CDATA[Ignored...]]></phrase>
+		</phrasetype>
+	</phrases>
+	<options>
+	</options>
+	<helptopics>
+	</helptopics>
+	<cronentries>
+	</cronentries>
+	<faqentries>
+	</faqentries>
+	<templateedits>
+	</templateedits>
+</product>
