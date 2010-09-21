@@ -17,6 +17,9 @@
 	</codes>
 	<templates>
 		<template name="advanced_ignore_notice" templatetype="template" date="1284663277" username="Vitaly" version="0.1"><![CDATA[<h2 class="title" style="text-align:center">{vb:rawphrase rcd_ai_is_ignored}</h2>]]></template>
+		<template name="advanced_ignore_post" templatetype="template" date="1285083275" username="ruseinov" version="0.1"><![CDATA[<li class="postbitignored postbitim" id="post_{vb:raw post.postid}" style="display:none">
+    
+</li>]]></template>
 	</templates>
 	<stylevardfns>
 	</stylevardfns>
@@ -29,6 +32,7 @@
 			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread')
 {
     $cache[] = 'advanced_ignore_notice';
+    $cache[] = 'advanced_ignore_post';
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
@@ -49,16 +53,25 @@ if($ignore[$post['userid']])
 {    
     if($rcd_ai_show_ignored)
     {      
-       $post['rcd_ai_template'] = true;
-       $fetchtype = 'post';
+        $post['rcd_ai_template'] = true;
+        
+        //Workaround to show deleted ignored posts as deleted. 
+        if ($post['visible'] == 2)
+        {
+            $fetchtype = 'post_deleted';    
+        }
+        else
+        {
+            $fetchtype = 'post';
+        }
     }
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
 			<title><![CDATA[Init template & permissions]]></title>
 			<hookname>showthread_post_start</hookname>
-			<phpcode><![CDATA[// Remove template
-$vbulletin->templatecache['postbit_ignore'] = '$final_rendered =\'\';';
+			<phpcode><![CDATA[// Change template
+$vbulletin->templatecache['postbit_ignore'] = $vbulletin->templatecache['advanced_ignore_post'];
 global $rcd_ai_template, $rcd_ai_show_ignored;
 if (can_moderate())
 {
