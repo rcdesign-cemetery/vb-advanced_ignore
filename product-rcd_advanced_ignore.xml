@@ -36,6 +36,22 @@
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
+			<title><![CDATA[Init permissions & template]]></title>
+			<hookname>parse_templates</hookname>
+			<phpcode><![CDATA[if (THIS_SCRIPT == 'forumdisplay')
+{
+    global $rcd_ai_show_ignored, $rcd_ai_thrdbit_tpl, $rcd_ai_thrdbit_deletd_tpl;
+
+    $rcd_ai_thrdbit_tpl = $vbulletin->templatecache['threadbit'];
+    $rcd_ai_thrdbit_deletd_tpl = $vbulletin->templatecachep['threadbit_deleted'];
+    
+    if (can_moderate())
+    {
+        $rcd_ai_show_ignored = true; 
+    }
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
 			<title>Postbit Ignore End</title>
 			<hookname>postbit_display_complete</hookname>
 			<phpcode><![CDATA[if($post['rcd_ai_template'])
@@ -53,17 +69,8 @@ if($ignore[$post['userid']])
 {    
     if($rcd_ai_show_ignored)
     {      
-        $post['rcd_ai_template'] = true;
-        
-        //Workaround to show deleted ignored posts as deleted. 
-        if ($post['visible'] == 2)
-        {
-            $fetchtype = 'post_deleted';    
-        }
-        else
-        {
-            $fetchtype = 'post';
-        }
+       $post['rcd_ai_template'] = true;
+       $fetchtype = 'post';
     }
 }]]></phpcode>
 		</plugin>
@@ -78,6 +85,22 @@ if (can_moderate())
     $rcd_ai_show_ignored = true;
     $rcd_ai_template = vB_Template::create('advanced_ignore_notice');
     $rcd_ai_template = $rcd_ai_template->render();
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Hide threads of ignored users.</title>
+			<hookname>threadbit_display</hookname>
+			<phpcode><![CDATA[global $rcd_ai_show_ignored, $rcd_ai_thrdbit_tpl, $rcd_ai_thrdbit_deletd_tpl;
+
+if ($ignore[$thread['postuserid']] && !$rcd_ai_show_ignored)
+{  
+    $vbulletin->templatecache['threadbit'] = '$final_rendered = \'\';';
+    $vbulletin->templatecache['threadbit_deleted'] = '$final_rendered = \'\';';     
+}
+else
+{
+    $vbulletin->templatecache['threadbit'] =  $rcd_ai_thrdbit_tpl;
+    $vbulletin->templatecache['threadbit_deleted'] =  $rcd_ai_thrdbit_deletd_tpl;   
 }]]></phpcode>
 		</plugin>
 	</plugins>
