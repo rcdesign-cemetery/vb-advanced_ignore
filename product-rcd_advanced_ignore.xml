@@ -35,7 +35,7 @@
     $cache[] = 'advanced_ignore_post';
 }]]></phpcode>
 		</plugin>
-		<plugin active="1" executionorder="5">
+		<plugin active="1" executionorder="10">
 			<title><![CDATA[Init permissions & template]]></title>
 			<hookname>parse_templates</hookname>
 			<phpcode><![CDATA[if (THIS_SCRIPT == 'forumdisplay')
