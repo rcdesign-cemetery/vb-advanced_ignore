@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<language name="Russian (RU)" vbversion="4.0.6" product="rcd_advanced_ignore" type="custom">
+<language name="Russian (RU)" vbversion="4.1.2" product="rcd_advanced_ignore" type="custom">
 	<settings>
 		<options><![CDATA[1]]></options>
 		<languagecode><![CDATA[ru]]></languagecode>
@@ -9,14 +9,21 @@
 		<dateoverride><![CDATA[d.m.Y]]></dateoverride>
 		<timeoverride><![CDATA[H:i]]></timeoverride>
 		<registereddateoverride><![CDATA[d.m.Y]]></registereddateoverride>
-		<calformat1override><![CDATA[d.m.Y]]></calformat1override>
-		<calformat2override><![CDATA[d.m]]></calformat2override>
+		<calformat1override><![CDATA[j F Y]]></calformat1override>
+		<calformat2override><![CDATA[j F]]></calformat2override>
 		<logdateoverride><![CDATA[H:i, d.m.Y]]></logdateoverride>
 		<locale />
 		<decimalsep><![CDATA[.]]></decimalsep>
 		<thousandsep><![CDATA[,]]></thousandsep>
 	</settings>
 	<phrasetype name="GLOBAL" fieldname="global">
-		<phrase name="rcd_ai_is_ignored" date="1284657035" username="Vitaly"><![CDATA[Игнорируется...]]></phrase>
+		<phrase name="ai_ignore_forever" date="1301686101" username="Vitaly"><![CDATA[навсегда]]></phrase>
+		<phrase name="ai_ignore_from" date="1301686116" username="Vitaly"><![CDATA[с]]></phrase>
+		<phrase name="ai_ignore_limit" date="1301686140" username="Vitaly"><![CDATA[Время игнора (дней)]]></phrase>
+		<phrase name="ai_ignore_reason" date="1301921193" username="ppavel"><![CDATA[Причина]]></phrase>
+		<phrase name="ai_ignore_till" date="1301686261" username="Vitaly"><![CDATA[по]]></phrase>
+		<phrase name="ai_is_ignored" date="1301686476" username="Vitaly"><![CDATA[Игнорируется...]]></phrase>
+		<phrase name="ai_period_descr" date="1301686655" username="Vitaly"><![CDATA[Укажите время игнорирования, в днях. Или оставьте поле пустым, чтобы занести в игнор навсегда.]]></phrase>
+		<phrase name="ai_reason_descr" date="1301686748" username="Vitaly"><![CDATA[Причина игнорирования (можно не заполнять)]]></phrase>
 	</phrasetype>
 </language>

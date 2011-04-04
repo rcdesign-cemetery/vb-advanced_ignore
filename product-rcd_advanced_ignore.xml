@@ -3,7 +3,7 @@
 <product productid="rcd_advanced_ignore" active="1">
 	<title>Advanced Ignore</title>
 	<description>Provides ignore rendering customizations.</description>
-	<version>0.1</version>
+	<version>0.2</version>
 	<url><![CDATA[http://www.vbulletin.org/forum/misc.php?do=producthelp&pid=rcd_advanced_ignore]]></url>
 	<versioncheckurl><![CDATA[http://www.vbulletin.org/forum/misc.php?do=productcheck&pid=rcd_advanced_ignore]]></versioncheckurl>
 	<apm_releasedate>0</apm_releasedate>
@@ -14,10 +14,164 @@
 	<dependencies>
 	</dependencies>
 	<codes>
+		<code version="0.2">
+			<installcode><![CDATA[$db->hide_errors();
+$vbulletin->db->query_write("ALTER TABLE ". TABLE_PREFIX . "
+                                userlist 
+                             ADD COLUMN (
+                               `ignorestart` INT(10) UNSIGNED, 
+                               `ignoreend` INT(10) UNSIGNED NOT NULL default 0, 
+                               `ignorereason` VARCHAR(255) ), 
+                             ADD INDEX (ignoreend) ");
+$db->show_errors();]]></installcode>
+			<uninstallcode><![CDATA[$vbulletin->db->query_write("ALTER TABLE " . TABLE_PREFIX . "
+                                 userlist 
+                             DROP 
+                                 `ignorestart`, 
+                             DROP  
+                                 `ignoreend`, 
+                             DROP 
+                                 `ignorereason` ");]]></uninstallcode>
+		</code>
 	</codes>
 	<templates>
-		<template name="advanced_ignore_notice" templatetype="template" date="1284663277" username="Vitaly" version="0.1"><![CDATA[<h2 class="title" style="text-align:center">{vb:rawphrase rcd_ai_is_ignored}</h2>]]></template>
-		<template name="advanced_ignore_post" templatetype="template" date="1285083275" username="ruseinov" version="0.1"><![CDATA[<li class="postbitignored postbitim" id="post_{vb:raw post.postid}" style="display:none">
+		<template name="ai_css" templatetype="template" date="1301671615" username="ppavel" version="0.2"><![CDATA[<style type="text/css">
+
+ul#ignorelist li 
+{
+    clear: both;
+}
+
+.ai_icon 
+{
+    display:block; 
+    float: left; 
+    margin-right: 6px;
+}
+
+.ai_link_profile 
+{
+    display: block; 
+    width: 210px; 
+    float: left;
+}
+
+</style>]]></template>
+		<template name="ai_modifyignorelist" templatetype="template" date="1301671970" username="ppavel" version="0.2"><![CDATA[<div class="block" id="userlist">
+	<h2 class="blockhead">{vb:rawphrase ignore_list}</h2>
+	<div <vb:if condition="!$show['ignorelist']">class="hidden"</vb:if>>
+		<div class="blockbody formcontrols settings_form_border">
+			<h3 class="blocksubhead">{vb:rawphrase ignore_list}</h3>
+			<div class="section">
+				<div class="blockrow">
+					<ul id="ignorelist">
+						{vb:raw ignorelist}
+					</ul>
+					<div class="floatcontainer">
+						
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="blockfoot actionbuttons settings_form_border">
+			<div class="group">
+				<img src="{vb:stylevar imgdir_misc}/progress.gif" id="ignorelist_change_progress" class="inlineimg hidden" alt="" />
+				
+			</div>
+		</div>
+
+	</div>
+	<vb:if condition="$ignorelist"><h2 class="blockhead">{vb:rawphrase add_member_to_your_list}</h2></vb:if>
+	<form action="profile.php?do=updatelist&amp;userlist=ignore" method="post" id="ignorelist_add_form">
+		<div class="blockbody formcontrols settings_form_border">
+			<vb:if condition="!$ignorelist"><h3 class="blocksubhead">{vb:rawphrase add_member_to_your_list}</h3></vb:if>
+			<div class="section">
+				<div class="blockrow">
+					<div id="ignorelist_error" class="userlist_error floatcontainer"><img src="{vb:stylevar imgdir_statusicon}/wol_error.gif" id="ignorelist_error_image" class="userlist_error_image" alt="" /> <span id="ignorelist_error_message"></span></div>
+					<label for="ignorelist_add_txt">{vb:rawphrase username}</label>
+					<div id="ignorelist_add" class="popupmenu nomouseover noclick nohovermenu popupcustom rightcol">
+						<div><input type="text" class="primary textbox popupctrl" name="username" id="ignorelist_add_txt" value="{vb:raw ignore_username}" /></div>
+						<div id="ignorelist_add_body" class="popupbody"></div>
+	        		</div>
+				</div>
+			</div>
+	</div>
+	<div class="blockfoot actionbuttons settings_form_border">
+		<div class="group">
+			<div id="ignorelist_add_menu" class="vbmenu_popup hidden"></div>
+			<input type="submit" class="button" value="{vb:rawphrase okay}" />
+		</div>
+	</div>
+	<input type="hidden" name="s" value="{vb:raw session.sessionhash}" />
+	<input type="hidden" name="securitytoken" value="{vb:raw bbuserinfo.securitytoken}" />
+	<input type="hidden" name="do" value="updatelist" />
+	<input type="hidden" name="userlist" value="ignore" />
+	<input type="hidden" name="perpage" value="{vb:raw perpage}" />
+	<input type="hidden" name="pagenumber" value="{vb:raw pagenumber}" />					
+	<input type="hidden" name="filter" origtext="{vb:raw filtertext}" value="{vb:raw filtertext}" />	
+	</form>
+</div>
+
+<script type="text/javascript" src="clientscript/vbulletin_ajax_suggest.js?v={vb:raw vboptions.simpleversion}"></script>
+
+<script type="text/javascript">
+<!--
+	snc_ignorelist = new vB_AJAX_NameSuggest("snc_ignorelist", "ignorelist_add_txt", "ignorelist_add");
+	// img-label handler
+	vBulletin.register_control("vB_UserList_Highlighter", "ignorelist");
+        vB_UserList_Savers = null;
+//-->
+</script>]]></template>
+		<template name="ai_modifyignorelist_user" templatetype="template" date="1301914489" username="ppavel" version="0.2"><![CDATA[<li id="user{vb:raw user.userid}">
+    <a href="profile.php?{vb:raw session.sessionurl}do=addlist&amp;userlist=ignore&amp;u={vb:raw user.userid}" class="ai_icon"><img src="{vb:stylevar imgdir_button}/edit_40b.png" alt="{vb:rawphrase edit}" class="inlineimg" /></a>
+    <a href="profile.php?{vb:raw session.sessionurl}do=removelist&amp;userlist=ignore&amp;u={vb:raw user.userid}" class="ai_icon"><img src="{vb:stylevar imgdir_siteicons}/x.png" alt="{vb:rawphrase remove_from_ignore_list}" class="inlineimg" /></a> 
+    <a class="ai_link_profile" href="{vb:link member, {vb:raw user}}">{vb:raw user.username}</a>
+    <vb:if  condition="$user['ignorestart']">
+        {vb:rawphrase ai_ignore_from} {vb:raw user.ignorestart} 
+    </vb:if> 
+    <vb:if  condition="$user['ignoreend']">
+        {vb:rawphrase ai_ignore_till} {vb:raw user.ignoreend}
+    <vb:else />
+       {vb:rawphrase ai_ignore_forever}
+    </vb:if> 
+    <vb:if  condition="$user['ignorereason']">
+       {vb:rawphrase ai_ignore_reason_x, {vb:raw user.ignorereason}}
+    </vb:if>
+</li>]]></template>
+		<template name="ai_modifyuserlist_confirm" templatetype="template" date="1301672650" username="ppavel" version="0.2"><![CDATA[<h2 class="blockhead">{vb:rawphrase confirm_user_list_modification}</h2>
+<div class="block">
+	<form action="profile.php?do={vb:raw action}&amp;list={vb:raw list}&amp;userid={vb:raw userid}" method="post">
+		<input type="hidden" name="s" value="{vb:raw session.sessionhash}" />
+		<input type="hidden" name="securitytoken" value="{vb:raw bbuserinfo.securitytoken}" />
+		<input type="hidden" name="do" value="{vb:raw action}" />
+		<input type="hidden" name="userlist" value="{vb:raw userlist}" />
+		<input type="hidden" name="userid" value="{vb:raw userid}" />
+		<input type="hidden" name="url" value="{vb:raw url}" />
+		<div class="blockbody formcontrols">
+			<h3 class="blocksubhead">{vb:rawphrase {vb:raw confirm_phrase}, {vb:raw userinfo.username}}</h3>
+                    <div class="section">
+			<div class="blockrow">			
+				<label for="ai_ignore_expiration">{vb:rawphrase ai_ignore_limit}</label>
+				<input type="text" class="primary textbox" name="ai_ignore_expiration" value="{vb:raw expiration}" autocomplete="off" id="ai_ignore_expiration" />
+				<p class="description">{vb:rawphrase ai_period_descr}</p>
+			</div>
+			<div class="blockrow">
+				<label for="ai_ignore_reason">{vb:rawphrase ai_ignore_reason}</label>
+				<input type="text" class="primary textbox" name="ai_ignore_reason" value="{vb:raw reason}" autocomplete="off" id="ai_ignore_reason" />
+				<p class="description">{vb:rawphrase ai_reason_descr}</p>
+			</div>
+                    </div>
+		</div>	
+		<div class="blockfoot actionbuttons">
+			<div class="group small_text_buttons">
+				<input type="submit" class="button" value="{vb:rawphrase yes}" name="confirm" tabindex="1" accesskey="s" />
+				<input type="submit" class="button" value="{vb:rawphrase no}" tabindex="1" name="deny" />
+			</div>
+		</div>
+	</form>
+</div>]]></template>
+		<template name="ai_notice" templatetype="template" date="1301672032" username="ppavel" version="0.2"><![CDATA[<h2 class="title" style="text-align:center">{vb:rawphrase ai_is_ignored}</h2>]]></template>
+		<template name="ai_post" templatetype="template" date="1301672013" username="ppavel" version="0.2"><![CDATA[<li class="postbitignored postbitim" id="post_{vb:raw post.postid}" style="display:none">
     
 </li>]]></template>
 	</templates>
@@ -31,82 +185,301 @@
 			<hookname>cache_templates</hookname>
 			<phpcode><![CDATA[if (THIS_SCRIPT == 'showthread')
 {
-    $cache[] = 'advanced_ignore_notice';
-    $cache[] = 'advanced_ignore_post';
+    $cache[] = 'ai_notice';
+    $cache[] = 'ai_post';
+}
+
+if (THIS_SCRIPT == 'profile')
+{
+    $cache[] = 'ai_css';
+
+    $cache[] = 'ai_modifyuserlist_confirm';
+
+    $cache[] = 'ai_modifyignorelist_user';
+
+    $cache[] = 'ai_modifyignorelist';
 }]]></phpcode>
 		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Cleanup expired ignores</title>
+			<hookname>cron_script_cleanup_daily</hookname>
+			<phpcode><![CDATA[$vbulletin->db->query_write( "DELETE FROM " . TABLE_PREFIX . " userlist 
+                              WHERE ignoreend > 0 and ignoreend <= " . TIMENOW . " and type = 'ignore' " );]]></phpcode>
+		</plugin>
 		<plugin active="1" executionorder="10">
-			<title><![CDATA[Init permissions & template]]></title>
+			<title><![CDATA[Init hide mode & templates]]></title>
 			<hookname>parse_templates</hookname>
 			<phpcode><![CDATA[if (THIS_SCRIPT == 'forumdisplay')
 {
-    global $rcd_ai_show_ignored, $rcd_ai_thrdbit_tpl, $rcd_ai_thrdbit_deletd_tpl;
+    global $ai_show_ignored, $ai_thrdbit_tpl, $ai_thrdbit_deletd_tpl;
 
-    $rcd_ai_thrdbit_tpl = $vbulletin->templatecache['threadbit'];
-    $rcd_ai_thrdbit_deletd_tpl = $vbulletin->templatecachep['threadbit_deleted'];
+    $ai_thrdbit_tpl = $vbulletin->templatecache['threadbit'];
+    $ai_thrdbit_deletd_tpl = $vbulletin->templatecache['threadbit_deleted'];
     
+    // Moderators view see ignored users, but woth comment
+    // regular users don't see messages from ignored.
     if (can_moderate())
     {
-        $rcd_ai_show_ignored = true; 
+        $ai_show_ignored = true; 
     }
-}]]></phpcode>
+}
+
+// CSS for ignore list
+if ( THIS_SCRIPT === 'profile' && ( $_REQUEST['do'] === 'ignorelist' || $_REQUEST['userlist'] === 'ignore' ) ) 
+{ 
+
+    $templater = vB_Template::create('ai_css'); 
+    $template_hook['headinclude_bottom_css'] .= $templater->render(); 
+
+}
+
+// Form to add/edit user from ignore list
+if ( THIS_SCRIPT === 'profile' && $_REQUEST['userlist'] === 'ignore' && $_REQUEST['do'] === 'addlist' ) 
+{  
+
+    $vbulletin->templatecache['modifyuserlist_confirm'] = $vbulletin->templatecache['ai_modifyuserlist_confirm'];
+
+}
+
+$vbulletin->templatecache['modifyignorelist_user'] = $vbulletin->templatecache['ai_modifyignorelist_user'];
+
+$vbulletin->templatecache['modifyignorelist'] = $vbulletin->templatecache['ai_modifyignorelist'];]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
 			<title>Postbit Ignore End</title>
 			<hookname>postbit_display_complete</hookname>
-			<phpcode><![CDATA[if($post['rcd_ai_template'])
+			<phpcode><![CDATA[if($post['ai_template'])
 {
-    global $rcd_ai_template;
-    $template_hook["postbit_messagearea_start"] .= $rcd_ai_template;
+    global $ai_template;
+    $template_hook["postbit_messagearea_start"] .= $ai_template;
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Load ignore details to template (confirmation dialog)</title>
+			<hookname>profile_complete</hookname>
+			<phpcode><![CDATA[if ( $_REQUEST['userlist'] === 'ignore' )
+{
+    if ($ignorepast = $db->query_first("
+                SELECT ignorestart, ignoreend, ignorereason
+                FROM " . TABLE_PREFIX . "userlist
+                WHERE userid = " . $vbulletin->userinfo['userid'] . " AND userlist.type = 'ignore' AND relationid= " . $userinfo['userid'] . "
+        "))
+        {
+            $reason = $ignorepast['ignorereason'];
+            $page_templater->register( 'reason', $reason );
+
+            if ( $ignorepast['ignorestart'] > 0 && $ignorepast['ignoreend'] > 0 ) 
+            {
+                $expiration = intval( ( $ignorepast['ignoreend'] - $ignorepast['ignorestart'] ) / 86400 );
+                $page_templater->register( 'expiration', $expiration );
+            }
+
+        }
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Store extended ignore details in db (if any)</title>
+			<hookname>profile_doaddlist_complete</hookname>
+			<phpcode><![CDATA[// ignorelist record has been created by vB, update it with additional params
+
+if ( $_POST['do'] === 'doaddlist' && $vbulletin->GPC['userlist'] == 'ignore' )
+{
+    $ignorefrom = TIMENOW;
+
+    $ignoretill = ( $vbulletin->GPC['ai_ignore_expiration'] ) ? TIMENOW + 86400 * $vbulletin->GPC['ai_ignore_expiration'] : 0;
+
+    $reason     = $vbulletin->GPC['ai_ignore_reason'];
+
+    $userid     = $vbulletin->userinfo['userid'];
+
+    $relationid = intval( $userinfo['userid'] );
+
+    $db->query_write("
+                      UPDATE " . TABLE_PREFIX . "
+                          userlist
+                      SET 
+                          ignorestart = $ignorefrom, 
+                          ignoreend = $ignoretill, 
+                          ignorereason  = '$reason'
+                      WHERE 
+                          userid = $userid AND 
+                          relationid = $relationid AND 
+                          type = 'ignore'
+    ");
+}]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title>Fetch extended ignore params from request</title>
+			<hookname>profile_doaddlist_start</hookname>
+			<phpcode><![CDATA[//Additional params, when add user to ignore list
+
+$vbulletin->input->clean_array_gpc('p', array(
+
+    'ai_ignore_expiration' => TYPE_UINT,
+    'ai_ignore_reason' => TYPE_NOHTML,
+
+));]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Show Ignorelist & Confirmation dialog]]></title>
+			<hookname>profile_start</hookname>
+			<phpcode><![CDATA[// Show ignore list
+if ($_REQUEST['do'] == 'ignorelist')
+{
+
+    $ignorelist = '';
+
+    $customquery = "
+        SELECT user.*, userlist.type, userlist.ignorestart, userlist.ignoreend, userlist.ignorereason
+        FROM " . TABLE_PREFIX . "userlist AS userlist
+        INNER JOIN " . TABLE_PREFIX . "user AS user ON (user.userid = userlist.relationid)
+        WHERE userlist.userid = " . $vbulletin->userinfo['userid'] . " AND userlist.type = 'ignore'
+        ORDER BY user.username
+    ";
+    $users_result = $db->query_read_slave( $customquery );
+    while ($user = $db->fetch_array($users_result))
+    {
+        if ( $user['ignorestart'] ) $user['ignorestart'] = vbdate( $vbulletin->options['dateformat'], $user['ignorestart'] );
+        if ( $user['ignoreend'] ) $user['ignoreend'] = vbdate( $vbulletin->options['dateformat'], $user['ignoreend'] );
+        $templater = vB_Template::create('ai_modifyignorelist_user');
+        $templater->register('user', $user);
+        $ignorelist .= $templater->render();
+    }
+
+    $show['ignorelist'] = !empty($ignorelist);
+
+    construct_usercp_nav('ignorelist');
+    $includecss['buddylist'] = 'buddylist.css';
+
+    $navbits[''] = $vbphrase['edit_ignore_list'];
+
+    $page_templater = vB_Template::create('modifyignorelist');
+    $page_templater->register('ignorelist', $ignorelist);
+    $page_templater->register('ignore_username', $ignore_username);
+
+    // Kill vB default handler (fake action)
+    $_REQUEST['do'] = 'ai';
+}
+
+// Process adding new user by username from ignore list.
+// get userid from _POST['username'] and show our confirmation form
+
+if ( $_REQUEST['do'] === 'updatelist' && !empty( $_POST['username'] ) && $_POST['userlist'] === 'ignore' )
+{ 
+    $vbulletin->input->clean_array_gpc('p', array(
+        'userlist'       => TYPE_NOHTML,
+        'username'       => TYPE_NOHTML,
+        'ajax'           => TYPE_BOOL,
+    ));
+
+    if ( !$vbulletin->GPC['ajax'] )
+    {
+        if ($userinfo = $db->query_first("
+                SELECT userid, username, usergroupid, membergroupids
+                FROM " . TABLE_PREFIX . "user AS user
+                WHERE username = '" . $db->escape_string(vbstrtolower($vbulletin->GPC['username'])) . "'
+        "))
+        {
+                // This part is 100% the same as in vBulletin
+                $uglist = $userinfo['usergroupid'] . iif(trim($userinfo['membergroupids']), ",$userinfo[membergroupids]");
+                if (!$vbulletin->options['ignoremods'] AND can_moderate(0, '', $userinfo['userid'], $uglist) AND !($permissions['adminpermissions'] & $vbulletin->bf_ugp_adminpermissions['cancontrolpanel']))
+                {
+                        eval(standard_error(fetch_error('listignoreuser', $userinfo['username'])));
+                }
+                else if ($vbulletin->userinfo['userid'] == $userinfo['userid'])
+                {
+                        eval(standard_error(fetch_error('cantlistself_ignore')));
+                }
+
+                $show['friend_checkbox'] = false;
+                $confirm_phrase = 'add_x_to_ignorelist_confirm';
+                construct_usercp_nav('ignorelist');
+                $navbits[''] = $vbphrase['confirm_user_list_modification'];
+                $action = 'doaddlist';
+                $userid = $userinfo['userid'];
+                $userlist = $vbulletin->GPC['userlist'];
+                $url =& $vbulletin->url;
+
+                $page_templater = vB_Template::create('ai_modifyuserlist_confirm');
+
+
+                $page_templater->register('action', $action);
+                $page_templater->register('confirm_phrase', $confirm_phrase);
+                $page_templater->register('friend_checked', $friend_checked);
+                $page_templater->register('list', $list);
+                $page_templater->register('supplemental_phrase', $supplemental_phrase);
+                $page_templater->register('url', $url);
+                $page_templater->register('userid', $userid);
+                $page_templater->register('userinfo', $userinfo);
+                $page_templater->register('userlist', $userlist);
+
+        }
+        else
+        {
+                eval(standard_error(fetch_error('listbaduser', $vbulletin->GPC['username'], $vbulletin->session->vars['sessionurl_q'])));
+        }
+    } 
+
+    // Kill default vB handlers (set fake action)
+    $_REQUEST['do'] = 'ai';
+    $_POST['do'] = 'ai';
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
 			<title>Postbit Ignore Start</title>
 			<hookname>showthread_postbit_create</hookname>
-			<phpcode><![CDATA[global $rcd_ai_show_ignored;
-$post['rcd_ai_template'] = false;
+			<phpcode><![CDATA[global $ai_show_ignored;
+$post['ai_template'] = false;
 if($ignore[$post['userid']])
 {    
-    if($rcd_ai_show_ignored)
+    if($ai_show_ignored)
     {      
-       $post['rcd_ai_template'] = true;
+       $post['ai_template'] = true;
        $fetchtype = 'post';
     }
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
-			<title><![CDATA[Init template & permissions]]></title>
+			<title><![CDATA[Init view & display mode in thread postbits]]></title>
 			<hookname>showthread_post_start</hookname>
 			<phpcode><![CDATA[// Change template
-$vbulletin->templatecache['postbit_ignore'] = $vbulletin->templatecache['advanced_ignore_post'];
-global $rcd_ai_template, $rcd_ai_show_ignored;
+$vbulletin->templatecache['postbit_ignore'] = $vbulletin->templatecache['ai_post'];
+global $ai_template, $ai_show_ignored;
 if (can_moderate())
 {
-    $rcd_ai_show_ignored = true;
-    $rcd_ai_template = vB_Template::create('advanced_ignore_notice');
-    $rcd_ai_template = $rcd_ai_template->render();
+    $ai_show_ignored = true;
+    $ai_template = vB_Template::create('ai_notice');
+    $ai_template = $ai_template->render();
 }]]></phpcode>
 		</plugin>
 		<plugin active="1" executionorder="5">
-			<title>Hide threads of ignored users.</title>
+			<title>Hide threads of ignored users</title>
 			<hookname>threadbit_display</hookname>
-			<phpcode><![CDATA[global $rcd_ai_show_ignored, $rcd_ai_thrdbit_tpl, $rcd_ai_thrdbit_deletd_tpl;
+			<phpcode><![CDATA[global $ai_show_ignored, $ai_thrdbit_tpl, $ai_thrdbit_deletd_tpl;
 
-if ($ignore[$thread['postuserid']] && !$rcd_ai_show_ignored)
+if ($ignore[$thread['postuserid']] && !$ai_show_ignored)
 {  
     $vbulletin->templatecache['threadbit'] = '$final_rendered = \'\';';
     $vbulletin->templatecache['threadbit_deleted'] = '$final_rendered = \'\';';     
 }
 else
 {
-    $vbulletin->templatecache['threadbit'] =  $rcd_ai_thrdbit_tpl;
-    $vbulletin->templatecache['threadbit_deleted'] =  $rcd_ai_thrdbit_deletd_tpl;   
+    $vbulletin->templatecache['threadbit'] =  $ai_thrdbit_tpl;
+    $vbulletin->templatecache['threadbit_deleted'] =  $ai_thrdbit_deletd_tpl;   
 }]]></phpcode>
 		</plugin>
 	</plugins>
 	<phrases>
 		<phrasetype name="GLOBAL" fieldname="global">
-			<phrase name="rcd_ai_is_ignored" date="1284658370" username="ruseinov" version=""><![CDATA[Ignored...]]></phrase>
+			<phrase name="ai_ignore_forever" date="1301686101" username="Vitaly" version=""><![CDATA[forever]]></phrase>
+			<phrase name="ai_ignore_from" date="1301686116" username="Vitaly" version=""><![CDATA[since]]></phrase>
+			<phrase name="ai_ignore_limit" date="1301686140" username="Vitaly" version=""><![CDATA[Ignore period (days)]]></phrase>
+			<phrase name="ai_ignore_reason" date="1301921193" username="ppavel" version=""><![CDATA[Reason]]></phrase>
+			<phrase name="ai_ignore_reason_x" date="1301914325" username="ppavel" version=""><![CDATA[({1})]]></phrase>
+			<phrase name="ai_ignore_till" date="1301686261" username="Vitaly" version=""><![CDATA[till]]></phrase>
+			<phrase name="ai_is_ignored" date="1301686476" username="Vitaly" version=""><![CDATA[Ignored...]]></phrase>
+			<phrase name="ai_period_descr" date="1301686655" username="Vitaly" version=""><![CDATA[Leave field blank to ignore forever. Or set number of days to ignore.]]></phrase>
+			<phrase name="ai_reason_descr" date="1301686748" username="Vitaly" version=""><![CDATA[Memo, why you ignore this user (can be blank)]]></phrase>
 		</phrasetype>
 	</phrases>
 	<options>
